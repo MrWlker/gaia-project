@@ -37,3 +37,10 @@ publicar/
 __pycache__/
 *.pyc
 .venv/
+
+# LaTeX
+documentos/latex/*.aux
+documentos/latex/*.log
+documentos/latex/*.out
+documentos/latex/*.toc
+documentos/latex/gaia.pdf

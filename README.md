@@ -118,6 +118,9 @@ sensores sintéticos.
 
 ## Documentação
 
+**Tudo num PDF:** [documentos/GAIA.pdf](documentos/GAIA.pdf), com o fonte LaTeX em `documentos/latex/`.
+Autores: Miguel Pereira, Thiago Almeida, Leticia Sabadini e Gabriel Borges.
+
 1. [Visão geral e arquitetura](documentos/01-visao-geral.md)
 2. [Servidor e inferência](documentos/02-servidor-e-inferencia.md), incluindo a API
 3. [Estação de captura e interface web](documentos/03-estacao.md)
