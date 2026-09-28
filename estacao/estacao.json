@@ -1,0 +1,42 @@
+{
+  "no": "canteiro-1",
+  "camera": "d435-frontal",
+  "servidor": [
+    "http://192.168.123.99:8077",
+    "http://10.42.0.1:8077",
+    "http://10.0.2.2:8077",
+    "http://127.0.0.1:8077"
+  ],
+  "porta": 8080,
+  "intervalo_s": 900,
+  "amostragem_s": 15,
+  "historico_dias": 14,
+  "stream_fps": 8,
+  "stream_largura": 640,
+  "timeout_s": 60,
+  "realsense": {
+    "largura": 640,
+    "altura": 480,
+    "fps": 15,
+    "prof_min_m": 0.15,
+    "prof_max_m": 2.0
+  },
+  "sensores": [
+    {
+      "tipo": "cpu"
+    },
+    {
+      "tipo": "realsense"
+    },
+    {
+      "tipo": "dht11",
+      "pino": 4,
+      "canal_temp": "temp",
+      "canal_umid": "umid_ar",
+      "min": 15,
+      "max": 32,
+      "min_umid": 40,
+      "max_umid": 90
+    }
+  ]
+}

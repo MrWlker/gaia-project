@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GAIA · Estação</title>
+<!-- Arquivo único e sem CDN: o Pi vive no hotspot do notebook e pode estar sem internet. -->
+<style>
+:root{
+  --bg:#f4f6f3; --card:#ffffff; --ink:#18201a; --mut:#5f6b62; --lin:#dfe5de;
+  --ac:#2f7d4f; --ac2:#1f5c39; --ok:#2f7d4f; --warn:#b7791f; --bad:#c0392b; --info:#2b6cb0;
+  --chip:#eef2ed; --sombra:0 1px 2px rgba(0,0,0,.05),0 4px 16px rgba(0,0,0,.04);
+  --s1:#2f7d4f; --s2:#2b6cb0; --s3:#c05621; --s4:#805ad5; --s5:#b83280; --s6:#2c7a7b;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0f1411; --card:#171e19; --ink:#e4ebe5; --mut:#93a197; --lin:#26302a;
+  --ac:#5bbf84; --ac2:#8ad6a8; --ok:#5bbf84; --warn:#e0a84a; --bad:#ef6b5b; --info:#6aa7e8;
+  --chip:#1f2822; --sombra:none;
+  --s1:#5bbf84; --s2:#6aa7e8; --s3:#ed8a4a; --s4:#a98be8; --s5:#e46aa8; --s6:#4fc1bf;
+}}
+:root[data-theme="dark"]{
+  --bg:#0f1411; --card:#171e19; --ink:#e4ebe5; --mut:#93a197; --lin:#26302a;
+  --ac:#5bbf84; --ac2:#8ad6a8; --ok:#5bbf84; --warn:#e0a84a; --bad:#ef6b5b; --info:#6aa7e8;
+  --chip:#1f2822; --sombra:none;
+  --s1:#5bbf84; --s2:#6aa7e8; --s3:#ed8a4a; --s4:#a98be8; --s5:#e46aa8; --s6:#4fc1bf;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.num,.mono{font-variant-numeric:tabular-nums}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px}
+header{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);
+  backdrop-filter:blur(8px);border-bottom:1px solid var(--lin)}
+.barra{max-width:1400px;margin:0 auto;padding:10px 16px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.marca{display:flex;align-items:center;gap:10px;font-weight:650;letter-spacing:.2px}
+.marca svg{width:26px;height:26px;color:var(--ac)}
+.marca small{font-weight:450;color:var(--mut)}
+.pilulas{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
+.pil{display:inline-flex;align-items:center;gap:6px;background:var(--chip);border:1px solid var(--lin);
+  border-radius:999px;padding:3px 10px;font-size:12px;color:var(--mut);white-space:nowrap}
+.pil b{color:var(--ink);font-weight:600}
+.pto{width:8px;height:8px;border-radius:50%;background:var(--mut)}
+.pto.ok{background:var(--ok)} .pto.warn{background:var(--warn)} .pto.bad{background:var(--bad)}
+.pto.vivo{animation:pulso 1.6s infinite}
+@keyframes pulso{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--ok) 60%,transparent)}100%{box-shadow:0 0 0 7px transparent}}
+button,select{font:inherit;color:inherit}
+.btn{background:var(--chip);border:1px solid var(--lin);border-radius:8px;padding:6px 12px;cursor:pointer}
+.btn:hover{border-color:var(--ac)}
+.btn.pri{background:var(--ac);border-color:var(--ac);color:#fff;font-weight:600}
+:root[data-theme="dark"] .btn.pri{color:#0f1411}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .btn.pri{color:#0f1411}}
+.btn.pri:disabled{opacity:.6;cursor:progress}
+.btn.ic{padding:6px 8px;line-height:0}
+main{max-width:1400px;margin:0 auto;padding:16px;display:grid;gap:16px;
+  grid-template-columns:minmax(0,1.55fr) minmax(0,1fr)}
+@media (max-width:980px){main{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--card);border:1px solid var(--lin);border-radius:14px;box-shadow:var(--sombra);min-width:0}
+.card>h2{margin:0;padding:12px 16px;font-size:13px;font-weight:650;letter-spacing:.3px;text-transform:uppercase;
+  color:var(--mut);display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--lin)}
+.card>h2 .dir{margin-left:auto;display:flex;gap:6px;text-transform:none;letter-spacing:0;font-weight:500}
+.corpo{padding:14px 16px}
+.largo{grid-column:1/-1}
+.abas{display:inline-flex;background:var(--chip);border:1px solid var(--lin);border-radius:8px;padding:2px}
+.abas button{white-space:nowrap;border:0;background:transparent;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px;color:var(--mut)}
+.abas button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+/* ao vivo */
+.palco{position:relative;background:#000;aspect-ratio:4/3;display:grid;grid-template-columns:1fr;overflow:hidden}
+.palco.duplo{grid-template-columns:1fr 1fr;aspect-ratio:8/3}
+.palco img{width:100%;height:100%;object-fit:contain;display:block}
+.mira{position:absolute;left:50%;top:50%;width:26px;height:26px;transform:translate(-50%,-50%);pointer-events:none}
+.palco.duplo .mira{display:none}
+.sobre{position:absolute;left:10px;bottom:10px;display:flex;gap:6px;flex-wrap:wrap}
+.sobre span:empty{display:none}
+.sobre span{background:rgba(0,0,0,.55);color:#fff;border-radius:6px;padding:2px 8px;font-size:12px}
+.selo{position:absolute;right:10px;top:10px;background:var(--warn);color:#000;font-weight:650;font-size:11px;
+  padding:2px 8px;border-radius:6px;letter-spacing:.4px}
+.acoes{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:12px 16px;border-top:1px solid var(--lin)}
+.acoes .dir{margin-left:auto;display:flex;gap:8px;align-items:center;color:var(--mut);font-size:12px}
+.anel{--p:0;width:34px;height:34px;border-radius:50%;
+  background:conic-gradient(var(--ac) calc(var(--p)*1%),var(--lin) 0);display:grid;place-items:center}
+.anel::before{content:"";width:26px;height:26px;border-radius:50%;background:var(--card);grid-area:1/1}
+.anel span{grid-area:1/1;font-size:9px;z-index:1}
+.fichas{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:1px;background:var(--lin);border-top:1px solid var(--lin)}
+.fichas div{background:var(--card);padding:8px 12px}
+.fichas small{display:block;color:var(--mut);font-size:11px}
+/* resultado */
+.vazio{color:var(--mut);text-align:center;padding:28px 10px}
+.det{display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;align-items:center;padding:10px 0;border-bottom:1px dashed var(--lin)}
+.det:last-child{border-bottom:0}
+.det .id{grid-row:span 2;width:38px;height:38px;border-radius:10px;background:var(--chip);display:grid;place-items:center;font-weight:700}
+.det .esp{font-weight:600}
+.det .sub{color:var(--mut);font-size:12px}
+.barra-p{height:6px;border-radius:3px;background:var(--lin);overflow:hidden;width:90px}
+.barra-p i{display:block;height:100%;background:var(--ac)}
+.tag{display:inline-block;border-radius:6px;padding:1px 7px;font-size:11px;font-weight:600;background:var(--chip);border:1px solid var(--lin)}
+.tag.ok{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 40%,var(--lin))}
+.tag.warn{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 40%,var(--lin))}
+.tag.bad{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 40%,var(--lin))}
+.aviso{border-left:3px solid var(--warn);background:color-mix(in srgb,var(--warn) 10%,var(--card));padding:8px 12px;border-radius:6px;font-size:13px}
+/* inferencia */
+.inf{background:#000}
+.infimg{position:relative;aspect-ratio:4/3;display:grid;place-items:center}
+.infimg img{width:100%;height:100%;object-fit:contain;display:block}
+.infimg .vazio{position:absolute;color:#aab}
+.legenda{display:flex;flex-wrap:wrap;gap:6px 16px;padding:8px 12px;font-size:12px;color:#cfd6d0;background:#0b0f0c}
+.legenda i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.legenda i.caixa{background:transparent;border:2px solid #cfd6d0;border-radius:1px}
+.planta{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;padding:12px 0;border-bottom:1px dashed var(--lin)}
+.planta:last-child{border-bottom:0}
+.planta .id{grid-row:span 3;width:42px;height:42px;border-radius:10px;display:grid;place-items:center;font-weight:700;color:#fff}
+.planta .esp{font-weight:650;font-size:15px}
+.planta .esp small{font-weight:500;color:var(--mut);margin-left:6px}
+.linha{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px;color:var(--mut)}
+.prob{display:inline-flex;align-items:center;gap:6px}
+.prob .barra-p{width:70px}
+.amb{display:flex;gap:12px;font-size:12px}
+.amb b{color:var(--ink)}
+/* sensores */
+.sens{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
+.sc{border:1px solid var(--lin);border-radius:12px;padding:12px;position:relative;overflow:hidden;background:var(--card)}
+.sc::before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:var(--cor,var(--ac))}
+.sc .nm{font-size:12px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sc .vl{font-size:28px;font-weight:650;margin:2px 0 0}
+.sc .vl small{font-size:13px;color:var(--mut);font-weight:500;margin-left:2px}
+.sc .rodape{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--mut);margin-top:4px}
+.sc svg{width:100%;height:36px;display:block;margin-top:6px}
+.sc.fora{box-shadow:inset 0 0 0 1px var(--bad)}
+.sc.sem .vl{color:var(--mut)}
+/* grafico */
+.graf{position:relative}
+.graf canvas{width:100%;height:280px;display:block}
+.dica{position:absolute;pointer-events:none;background:var(--card);border:1px solid var(--lin);border-radius:8px;
+  padding:6px 10px;font-size:12px;box-shadow:0 4px 14px rgba(0,0,0,.15);display:none;min-width:150px;z-index:2}
+.leg{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.leg button{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--lin);background:var(--chip);border-radius:999px;
+  padding:2px 10px;font-size:12px;cursor:pointer}
+.leg button i{width:10px;height:10px;border-radius:3px;background:var(--c)}
+.leg button.off{opacity:.45}
+/* galeria */
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.cap{border:1px solid var(--lin);border-radius:12px;overflow:hidden;background:var(--card);cursor:pointer}
+.cap .img{position:relative;aspect-ratio:4/3;background:#000}
+.cap img{width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0;transition:opacity .2s}
+.cap img.p{opacity:0}
+.cap:hover img.p{opacity:1}
+.cap .img .tag{position:absolute;top:8px;left:8px}
+.cap .txt{padding:8px 10px;font-size:12px}
+.cap .txt b{display:block;font-size:13px}
+/* sistema */
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:13px}
+.kv dt{color:var(--mut)}
+.kv dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.medidor{height:8px;border-radius:4px;background:var(--lin);overflow:hidden;margin-top:3px}
+.medidor i{display:block;height:100%;background:var(--ac)}
+.log{max-height:220px;overflow:auto;background:var(--chip);border-radius:8px;padding:8px 10px;margin-top:12px;white-space:pre-wrap}
+dialog{border:1px solid var(--lin);border-radius:14px;background:var(--card);color:var(--ink);padding:0;max-width:min(1000px,94vw);width:100%}
+dialog::backdrop{background:rgba(0,0,0,.55)}
+dialog .dupla{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:#000}
+dialog .dupla img{width:100%;display:block}
+@media (max-width:640px){dialog .dupla{grid-template-columns:1fr}.palco.duplo{grid-template-columns:1fr;aspect-ratio:4/6}}
+.toast{position:fixed;right:16px;bottom:16px;background:var(--ink);color:var(--bg);padding:10px 14px;border-radius:10px;
+  opacity:0;transform:translateY(8px);transition:.25s;z-index:20;max-width:calc(100vw - 32px)}
+.toast.on{opacity:1;transform:none}
+</style>
+</head>
+<body>
+<header><div class="barra">
+  <div class="marca">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M12 21V11"/><path d="M12 11c0-4 3-7 8-7 0 5-3 8-8 7Z"/><path d="M12 14c0-3-2.5-5.5-7-5.5 0 4 2.5 6.5 7 5.5Z"/></svg>
+    <span>GAIA <small id="nomeNo">estação</small></span>
+  </div>
+  <div class="pilulas">
+    <span class="pil" title="Câmera"><i class="pto" id="ptoCam"></i>câmera <b id="pilCam">—</b></span>
+    <span class="pil" title="Servidor de inferência no notebook"><i class="pto" id="ptoSrv"></i>inferência <b id="pilSrv">—</b></span>
+    <span class="pil" title="Capturas aguardando envio">fila <b id="pilFila" class="num">—</b></span>
+    <span class="pil" title="Tempo ligado">ligado <b id="pilUp" class="num">—</b></span>
+  </div>
+  <button class="btn ic" id="tema" title="Alternar tema" aria-label="Alternar tema">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+  </button>
+</div></header>
+
+<main>
+  <section class="card">
+    <h2>Inferência <span class="mono" id="resQuando" style="text-transform:none;letter-spacing:0"></span>
+      <span class="dir"><span class="abas" id="abasInf">
+        <button data-i="anotada" class="on">Anotada</button><button data-i="original">Original</button><button data-i="prof">Profundidade</button>
+      </span></span>
+    </h2>
+    <div class="inf">
+      <div class="infimg"><img id="infImg" alt="Última captura anotada pelo servidor">
+        <div class="sobre"><span id="infIdade">—</span><span id="infArea">planta —</span><span id="infFonte"></span></div>
+        <div class="vazio" id="infVazio">Aguardando a primeira inferência…</div>
+      </div>
+      <div class="legenda">
+        <span><i style="background:#3cc85a"></i>planta (máscara de excesso de verde)</span>
+        <span><i style="background:#eb3c2d"></i>onde a rede olhou para “doente” (Grad-CAM)</span>
+        <span><i class="caixa"></i>caixa = região contígua de vegetação, não um detector treinado</span>
+      </div>
+    </div>
+    <div class="corpo" id="resultado"></div>
+  </section>
+
+  <section class="card">
+    <h2>Câmera ao vivo
+      <span class="dir"><span class="abas" id="abasVista">
+        <button data-v="cor" class="on">Cor</button><button data-v="prof">Profundidade</button><button data-v="duplo">Lado a lado</button>
+      </span></span>
+    </h2>
+    <div class="palco" id="palco">
+      <img id="imgA" alt="Imagem ao vivo da câmera">
+      <img id="imgB" alt="Profundidade ao vivo" hidden>
+      <svg class="mira" viewBox="0 0 26 26" fill="none" stroke="#fff" stroke-width="1.5" opacity=".8"><circle cx="13" cy="13" r="5"/><path d="M13 0v7M13 19v7M0 13h7M19 13h7"/></svg>
+      <div class="sobre"><span id="sobreDist">centro —</span><span id="sobreFps">— fps</span></div>
+      <div class="selo" id="seloSim" hidden>SIMULADO</div>
+    </div>
+    <div class="acoes">
+      <button class="btn pri" id="btnCap">Inferir agora</button>
+      <label class="mono" style="display:flex;gap:6px;align-items:center;color:var(--mut)">a cada
+        <select class="btn" id="selInt" style="padding:4px 6px">
+          <option value="5">5 s</option><option value="10">10 s</option><option value="30">30 s</option>
+          <option value="60">1 min</option><option value="300">5 min</option><option value="900">15 min</option>
+          <option value="3600">1 h</option>
+        </select></label>
+      <div class="dir"><span>próxima captura em <b id="prox" class="num">—</b></span><div class="anel" id="anel"><span></span></div></div>
+    </div>
+    <div class="fichas">
+      <div><small>resolução</small><b id="fRes" class="num">—</b></div>
+      <div><small>USB</small><b id="fUsb">—</b></div>
+      <div><small>ASIC / projetor</small><b id="fAsic" class="num">—</b></div>
+      <div><small>serial · firmware</small><b id="fSer" class="mono">—</b></div>
+      <div><small>FOV horizontal</small><b id="fFov" class="num">—</b></div>
+    </div>
+  </section>
+
+  <section class="card largo">
+    <h2>Sensores <span class="dir"><span class="mono" id="sensQuando"></span></span></h2>
+    <div class="corpo"><div class="sens" id="sens"></div></div>
+  </section>
+
+  <section class="card largo">
+    <h2>Histórico
+      <span class="dir"><span class="abas" id="abasJanela">
+        <button data-h="1">1 h</button><button data-h="6" class="on">6 h</button><button data-h="24">24 h</button><button data-h="168">7 d</button>
+      </span></span>
+    </h2>
+    <div class="corpo">
+      <div class="graf"><canvas id="graf"></canvas><div class="dica" id="dica"></div></div>
+      <div class="leg" id="leg"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Capturas <span class="dir"><span class="mono" style="color:var(--mut)">passe o mouse para ver a profundidade</span></span></h2>
+    <div class="corpo"><div class="gal" id="gal"><div class="vazio">Sem capturas.</div></div></div>
+  </section>
+
+  <section class="card">
+    <h2>Sistema</h2>
+    <div class="corpo">
+      <dl class="kv">
+        <dt>nó</dt><dd id="sNo">—</dd>
+        <dt>servidor</dt><dd id="sSrv" class="mono">—</dd>
+        <dt>modelos</dt><dd id="sMod">—</dd>
+        <dt>carga</dt><dd id="sCarga" class="num">—</dd>
+        <dt>memória</dt><dd><span id="sMem" class="num">—</span><div class="medidor"><i id="mMem"></i></div></dd>
+        <dt>disco</dt><dd><span id="sDisco" class="num">—</span><div class="medidor"><i id="mDisco"></i></div></dd>
+      </dl>
+      <div class="log mono" id="log"></div>
+    </div>
+  </section>
+</main>
+
+<dialog id="dlg"><div class="dupla"><img id="dlgA" alt=""><img id="dlgB" alt=""></div>
+  <div class="corpo" id="dlgTxt"></div>
+  <div class="acoes"><div class="dir"><button class="btn" onclick="dlg.close()">Fechar</button></div></div></dialog>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const CORES = ['--s1','--s2','--s3','--s4','--s5','--s6'];
+const cssv = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+let E = null, janela = 6, hist = {}, ocultos = new Set(), vista = 'cor', corDe = {};
+
+/* ---------- tema ---------- */
+try { const t = localStorage.getItem('gaia-tema'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+$('tema').onclick = () => {
+  const escuro = document.documentElement.dataset.theme
+    ? document.documentElement.dataset.theme === 'dark'
+    : matchMedia('(prefers-color-scheme: dark)').matches;
+  document.documentElement.dataset.theme = escuro ? 'light' : 'dark';
+  try { localStorage.setItem('gaia-tema', document.documentElement.dataset.theme); } catch (e) {}
+  desenhar();
+};
+
+/* ---------- utilidades ---------- */
+const fmt = (v, d = 1) => v == null || isNaN(v) ? '—' : Number(v).toLocaleString('pt-BR', {minimumFractionDigits: d, maximumFractionDigits: d});
+const dur = s => { s = Math.max(0, Math.round(s)); const d = Math.floor(s/86400), h = Math.floor(s%86400/3600), m = Math.floor(s%3600/60);
+  return d ? `${d}d ${h}h` : h ? `${h}h ${m}min` : m ? `${m}min ${s%60}s` : `${s}s`; };
+const hora = t => new Date(t*1000).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+const quando = iso => { const d = new Date(iso); return d.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'}) + ' ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}); };
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function aviso(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('on'), 3500); }
+async function api(url, opt) { const r = await fetch(url, opt); if (!r.ok && r.status >= 500) throw new Error(r.status); return r.json(); }
+function corCanal(c) { if (!(c in corDe)) corDe[c] = CORES[Object.keys(corDe).length % CORES.length]; return cssv(corDe[c]); }
+
+/* ---------- ao vivo ---------- */
+function ligarStream() {
+  const a = $('imgA'), b = $('imgB'), p = $('palco');
+  if (document.hidden) { a.src = ''; b.src = ''; return; }       // aba escondida: o Pi para de codificar
+  const t = '?t=' + Date.now();
+  p.classList.toggle('duplo', vista === 'duplo');
+  b.hidden = vista !== 'duplo';
+  a.src = (vista === 'prof' ? '/stream/profundidade.mjpg' : '/stream/cor.mjpg') + t;
+  b.src = vista === 'duplo' ? '/stream/profundidade.mjpg' + t : '';
+}
+$('abasVista').onclick = e => { const v = e.target.dataset.v; if (!v) return; vista = v;
+  [...e.currentTarget.children].forEach(x => x.classList.toggle('on', x === e.target)); ligarStream(); };
+document.addEventListener('visibilitychange', ligarStream);
+
+$('btnCap').onclick = async () => {
+  const b = $('btnCap'); b.disabled = true; b.textContent = 'Capturando…';
+  try {
+    const r = await api('/api/capturar', {method: 'POST'});
+    if (r.erro) aviso(r.erro);
+    else aviso(r.enviado ? 'Inferência recebida do notebook' : 'Capturado; ficou na fila');
+    ultimaCap = null; carregarUltima(); carregarCapturas();
+  } catch (e) { aviso('Falha ao capturar: ' + e.message); }
+  b.disabled = false; b.textContent = 'Inferir agora';
+};
+$('selInt').onchange = async e => {
+  const r = await api('/api/intervalo', {method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({intervalo_s: +e.target.value})});
+  aviso(r.erro || 'Intervalo: ' + dur(r.intervalo_s));
+};
+
+/* ---------- estado ---------- */
+async function atualizar() {
+  try { E = await api('/api/estado'); } catch (e) { $('ptoCam').className = 'pto bad'; $('pilCam').textContent = 'nó fora'; return; }
+  const c = E.camera, s = E.servidor, sys = E.sistema;
+  $('nomeNo').textContent = `${E.no} · ${E.camera_nome}`;
+  $('ptoCam').className = 'pto ' + (c.modo === 'realsense' ? 'ok vivo' : 'warn');
+  $('pilCam').textContent = c.modo === 'realsense' ? `${fmt(c.fps_medido,0)} fps` : 'simulada';
+  $('seloSim').hidden = c.modo === 'realsense';
+  $('seloSim').title = c.erro || '';
+  $('ptoSrv').className = 'pto ' + (s.url ? 'ok' : 'bad');
+  $('pilSrv').textContent = s.url ? (s.saude && s.saude.classificador ? 'com modelo' : 'só ingestão') : 'offline';
+  $('pilFila').textContent = E.fila.pendentes;
+  $('pilUp').textContent = dur(E.uptime_s);
+  $('sobreDist').textContent = 'centro ' + (c.distancia_centro_m == null ? '—' : fmt(c.distancia_centro_m, 2) + ' m');
+  $('sobreFps').textContent = fmt(c.fps_medido, 1) + ' fps';
+  $('fRes').textContent = `${c.largura}×${c.altura} @ ${c.fps}`;
+  $('fUsb').textContent = c.info && c.info.usb ? c.info.usb + (c.info.usb.startsWith('2') ? ' (limitado)' : '') : '—';
+  $('fAsic').textContent = c.temp_asic == null ? '—' : `${fmt(c.temp_asic,0)} / ${fmt(c.temp_projetor,0)} °C`;
+  $('fSer').textContent = c.info && c.info.serial ? `${c.info.serial} · ${c.info.firmware}` : (c.erro || '—');
+  $('fFov').textContent = c.intrinseca ? fmt(c.intrinseca.fov_h, 1) + '°' : '—';
+  const f = E.fila, prog = 100 * (1 - f.proxima_em_s / f.intervalo_s);
+  $('prox').textContent = dur(f.proxima_em_s);
+  $('anel').style.setProperty('--p', Math.max(0, Math.min(100, prog)));
+  if (document.activeElement !== $('selInt')) {
+    const sel = $('selInt');
+    if (![...sel.options].some(o => +o.value === f.intervalo_s)) sel.add(new Option(dur(f.intervalo_s), f.intervalo_s));
+    sel.value = f.intervalo_s;
+  }
+  // sistema
+  $('sNo').textContent = `${E.no} (${sys.maquina})`;
+  $('sSrv').innerHTML = s.candidatos.map(u => `<div>${u === s.url ? '●' : '○'} ${esc(u)}</div>`).join('');
+  $('sMod').innerHTML = s.saude ? `<span class="tag ${s.saude.classificador ? 'ok' : 'warn'}">classificador ${s.saude.classificador ? 'carregado' : 'ausente'}</span> <span class="tag ${s.saude.detector ? 'ok' : ''}">detector ${s.saude.detector ? 'carregado' : 'ausente'}</span>` : '<span class="tag bad">notebook inalcançável</span>';
+  $('sCarga').textContent = sys.carga.map(x => fmt(x, 2)).join(' · ');
+  const usoMem = 1 - sys.mem_livre_mb / sys.mem_total_mb, usoDisco = 1 - sys.disco_livre_gb / sys.disco_total_gb;
+  $('sMem').textContent = `${sys.mem_total_mb - sys.mem_livre_mb} de ${sys.mem_total_mb} MB`;
+  $('mMem').style.width = (100 * usoMem) + '%'; $('mMem').style.background = usoMem > .85 ? 'var(--bad)' : '';
+  $('sDisco').textContent = `${fmt(sys.disco_livre_gb)} GB livres de ${fmt(sys.disco_total_gb)}`;
+  $('mDisco').style.width = (100 * usoDisco) + '%'; $('mDisco').style.background = usoDisco > .9 ? 'var(--bad)' : '';
+  const log = $('log'), noFim = log.scrollTop + log.clientHeight >= log.scrollHeight - 4;
+  log.textContent = E.log.join('\n'); if (noFim) log.scrollTop = log.scrollHeight;
+  cartoes();
+}
+
+/* ---------- sensores ---------- */
+function situacao(m, v) {
+  if (v == null) return ['sem', 'sem leitura', ''];
+  if (m.min != null && v < m.min) return ['fora', 'abaixo de ' + fmt(m.min, 0), 'bad'];
+  if (m.max != null && v > m.max) return ['fora', 'acima de ' + fmt(m.max, 0), 'bad'];
+  if (m.min != null || m.max != null) return ['', `faixa ${fmt(m.min ?? -Infinity,0)}–${fmt(m.max ?? Infinity,0)}`, 'ok'];
+  return ['', m.tipo, ''];
+}
+function faisca(serie, cor) {
+  if (!serie || serie.length < 2) return '<svg></svg>';
+  const xs = serie.map(p => p[0]), ys = serie.map(p => p[1]);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys) || 1;
+  const X = x => (x - x0) / (x1 - x0 || 1) * 200, Y = y => 34 - (y - y0) / ((y1 - y0) || 1) * 30;
+  const d = serie.map((p, i) => (i ? 'L' : 'M') + X(p[0]).toFixed(1) + ' ' + Y(p[1]).toFixed(1)).join('');
+  return `<svg viewBox="0 0 200 36" preserveAspectRatio="none"><path d="${d} L200 36 L0 36Z" fill="${cor}" opacity=".12"/><path d="${d}" fill="none" stroke="${cor}" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg>`;
+}
+function cartoes() {
+  if (!E) return;
+  const cat = E.sensores.catalogo || {}, val = E.sensores.valores || {};
+  $('sensQuando').textContent = E.sensores.instante ? 'lido às ' + new Date(E.sensores.instante * 1000).toLocaleTimeString('pt-BR') : '';
+  const umaHora = Date.now() / 1000 - 3600;
+  $('sens').innerHTML = Object.values(cat).map(m => {
+    const v = val[m.canal], [cls, txt, tg] = situacao(m, v), cor = corCanal(m.canal);
+    const serie = (hist[m.canal] || []).filter(p => p[0] >= umaHora);
+    return `<div class="sc ${cls}" style="--cor:${cor}">
+      <div class="nm" title="${esc(m.canal)}">${esc(m.nome)}</div>
+      <div class="vl num">${fmt(v, 1)}<small>${esc(m.unidade)}</small></div>
+      <div class="rodape"><span class="tag ${tg}">${esc(txt)}</span><span class="mono">${esc(m.canal)}</span></div>
+      ${faisca(serie.length > 1 ? serie : hist[m.canal], cor)}</div>`;
+  }).join('') || '<div class="vazio">Nenhum sensor configurado em estacao.json.</div>';
+}
+
+/* ---------- histórico ---------- */
+let diagOcultos = false;
+async function carregarHist() { try { hist = await api('/api/historico?horas=' + janela); } catch (e) { return; }
+  // CPU e D435 sao diagnostico e vivem em 50-70 °C: ligados de saida, achatam ar e solo
+  if (!diagOcultos && E) { diagOcultos = true;
+    Object.values(E.sensores.catalogo).forEach(m => { if (m.tipo === 'cpu' || m.tipo === 'realsense') ocultos.add(m.canal); }); }
+  desenhar(); cartoes(); }
+$('abasJanela').onclick = e => { const h = e.target.dataset.h; if (!h) return; janela = +h;
+  [...e.currentTarget.children].forEach(x => x.classList.toggle('on', x === e.target)); carregarHist(); };
+
+let geo = null;
+function desenhar() {
+  const cv = $('graf'), dpr = devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
+  cv.width = W * dpr; cv.height = H * dpr;
+  const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+  const cat = E ? E.sensores.catalogo : {};
+  const canais = Object.keys(hist).filter(c => !ocultos.has(c));
+  // legenda sempre com todos, para poder religar
+  $('leg').innerHTML = Object.keys(hist).map(c => `<button data-c="${esc(c)}" class="${ocultos.has(c) ? 'off' : ''}" style="--c:${corCanal(c)}"><i></i>${esc((cat[c] || {}).nome || c)}</button>`).join('');
+  const m = {l: 44, r: 12, t: 12, b: 26}, pw = W - m.l - m.r, ph = H - m.t - m.b;
+  const txt = cssv('--mut'), lin = cssv('--lin');
+  g.font = '11px system-ui'; g.fillStyle = txt;
+  if (!canais.length) { g.fillText('Sem dados nesta janela.', m.l, m.t + 20); geo = null; return; }
+  const agora = Date.now() / 1000, x0 = agora - janela * 3600, x1 = agora;
+  let y0 = Infinity, y1 = -Infinity;
+  canais.forEach(c => hist[c].forEach(p => { y0 = Math.min(y0, p[2]); y1 = Math.max(y1, p[3]); }));
+  if (y0 === y1) { y0 -= 1; y1 += 1; }
+  const pad = (y1 - y0) * .08; y0 -= pad; y1 += pad;
+  const X = x => m.l + (x - x0) / (x1 - x0) * pw, Y = y => m.t + (1 - (y - y0) / (y1 - y0)) * ph;
+  // grade
+  g.strokeStyle = lin; g.lineWidth = 1; g.textAlign = 'right'; g.textBaseline = 'middle';
+  for (let i = 0; i <= 4; i++) { const v = y0 + (y1 - y0) * i / 4, y = Y(v);
+    g.beginPath(); g.moveTo(m.l, y); g.lineTo(W - m.r, y); g.stroke(); g.fillText(fmt(v, 1), m.l - 6, y); }
+  g.textAlign = 'center'; g.textBaseline = 'top';
+  const passos = janela <= 1 ? 900 : janela <= 6 ? 3600 : janela <= 24 ? 14400 : 86400;
+  for (let t = Math.ceil(x0 / passos) * passos; t <= x1; t += passos) {
+    const x = X(t); g.fillText(janela > 24 ? new Date(t*1000).toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'}) : hora(t), x, H - m.b + 8);
+    g.beginPath(); g.moveTo(x, H - m.b); g.lineTo(x, H - m.b + 4); g.stroke(); }
+  // faixa aceitável do primeiro canal visível que a tiver
+  const comFaixa = canais.find(c => cat[c] && (cat[c].min != null || cat[c].max != null));
+  if (comFaixa && canais.length === 1) { const f = cat[comFaixa];
+    g.fillStyle = corCanal(comFaixa); g.globalAlpha = .07;
+    const ya = Y(Math.min(y1, f.max ?? y1)), yb = Y(Math.max(y0, f.min ?? y0)); g.fillRect(m.l, ya, pw, yb - ya); g.globalAlpha = 1; }
+  // séries: faixa min–max do balde + linha da média; buraco > 3 baldes quebra a linha
+  canais.forEach(c => { const s = hist[c], cor = corCanal(c); if (!s.length) return;
+    const passo = s.length > 1 ? (s[s.length-1][0] - s[0][0]) / (s.length - 1) : 60;
+    g.fillStyle = cor; g.globalAlpha = .12; g.beginPath();
+    s.forEach((p, i) => i ? g.lineTo(X(p[0]), Y(p[3])) : g.moveTo(X(p[0]), Y(p[3])));
+    for (let i = s.length - 1; i >= 0; i--) g.lineTo(X(s[i][0]), Y(s[i][2]));
+    g.fill(); g.globalAlpha = 1;
+    g.strokeStyle = cor; g.lineWidth = 2; g.lineJoin = 'round'; g.beginPath();
+    s.forEach((p, i) => (i && p[0] - s[i-1][0] <= passo * 3) ? g.lineTo(X(p[0]), Y(p[1])) : g.moveTo(X(p[0]), Y(p[1])));
+    g.stroke(); });
+  geo = {X, Y, x0, x1, m, pw, canais};
+}
+$('leg').onclick = e => { const b = e.target.closest('button'); if (!b) return; const c = b.dataset.c;
+  ocultos.has(c) ? ocultos.delete(c) : ocultos.add(c); desenhar(); };
+$('graf').onmousemove = e => {
+  if (!geo) return; const r = e.target.getBoundingClientRect(), mx = e.clientX - r.left;
+  const t = geo.x0 + (mx - geo.m.l) / geo.pw * (geo.x1 - geo.x0), cat = E ? E.sensores.catalogo : {};
+  const linhas = geo.canais.map(c => { const s = hist[c]; if (!s.length) return '';
+    let best = s[0]; for (const p of s) if (Math.abs(p[0] - t) < Math.abs(best[0] - t)) best = p;
+    return `<div style="display:flex;justify-content:space-between;gap:12px"><span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${corCanal(c)}"></i> ${esc((cat[c]||{}).nome || c)}</span><b class="num">${fmt(best[1],1)} ${esc((cat[c]||{}).unidade||'')}</b></div>`; }).join('');
+  const d = $('dica'); d.innerHTML = `<div class="mono" style="color:var(--mut)">${new Date(t*1000).toLocaleString('pt-BR')}</div>${linhas}`;
+  d.style.display = 'block';
+  d.style.left = Math.min(mx + 14, r.width - d.offsetWidth - 4) + 'px'; d.style.top = '10px';
+};
+$('graf').onmouseleave = () => $('dica').style.display = 'none';
+addEventListener('resize', desenhar);
+
+/* ---------- resultado e capturas ---------- */
+let infVista = 'anotada', infAtual = null;
+$('abasInf').onclick = e => { const v = e.target.dataset.i; if (!v) return; infVista = v;
+  [...e.currentTarget.children].forEach(x => x.classList.toggle('on', x === e.target)); desenharInf(); };
+function urlServidor(rel) { return E && E.servidor.url && rel ? E.servidor.url + '/midia/' + rel.split('/').map(encodeURIComponent).join('/') : null; }
+function desenharInf() {
+  const c = infAtual; if (!c) return;
+  const base = `/midia/${c.pasta}/`, r = c.resposta || {};
+  const src = infVista === 'anotada' ? (urlServidor(r.anotada) || base + c.imagem)
+            : infVista === 'prof' && c.tem_profundidade ? base + c.imagem.replace('.jpg', '_prof.png') + '?cor=1'
+            : base + c.imagem;
+  if ($('infImg').dataset.src !== src) { $('infImg').src = src; $('infImg').dataset.src = src; }
+  $('infVazio').hidden = true;
+}
+function prob(rotulo, p) {
+  if (p == null) return `<span class="prob">${esc(rotulo)}</span>`;
+  return `<span class="prob">${esc(rotulo)} <span class="barra-p"><i style="width:${Math.round(100*p)}%"></i></span><b class="num">${fmt(100*p,0)}%</b></span>`;
+}
+function mostrarResultado(r, instante, cap) {
+  if (cap) { infAtual = cap; desenharInf(); }
+  $('resQuando').textContent = instante ? '· ' + quando(instante) : '';
+  $('infArea').textContent = r && r.area_planta != null ? `planta ${fmt(100*r.area_planta,0)}% do quadro` : 'planta —';
+  $('infFonte').textContent = r && r.fonte_caixas === 'sem_vegetacao' ? 'nenhuma planta no quadro' : '';
+  const dets = (r && r.deteccoes) || [];
+  if (!dets.length) { $('resultado').innerHTML = '<div class="vazio">Nenhuma planta no quadro: não há vegetação acima do piso de verde.<br>Aponte a câmera para as plantas.</div>'; return; }
+  const semModelo = dets.every(d => d.especie == null && d.condicao == null);
+  $('resultado').innerHTML = (semModelo ? `<div class="aviso">O notebook está em <b>ingestão pura</b> (sem <span class="mono">GAIA_RUN</span>): a planta foi localizada e guardada, mas não classificada.</div>` : '') +
+    dets.map(d => {
+      if (d.planta == null) return `<div class="planta"><div class="id" style="background:#777">?</div><div class="esp">Região sem posição no canteiro</div><div class="linha">${esc(d.motivo || '')}</div><div></div></div>`;
+      const cor = !d.condicao ? '#5a6e64' : d.condicao === 'healthy' ? '#2f7d4f' : (d.p_condicao || 0) >= .6 ? '#c0392b' : '#b7791f';
+      const cond = d.condicao === 'healthy' ? 'saudável' : d.condicao === 'diseased' ? 'doente' : (d.condicao || '—');
+      const extra = [d.agente && d.agente !== 'none' ? prob('agente: ' + d.agente, d.p_agente) : '',
+                     d.hydration ? prob(d.hydration.label, d.hydration.p) : '',
+                     d.organ ? prob(d.organ.label, d.organ.p) : ''].filter(Boolean).join('');
+      return `<div class="planta"><div class="id num" style="background:${cor}">${d.planta}</div>
+        <div class="esp">${esc((d.especie || 'espécie não classificada').replace(/_/g, ' '))}<small>${d.p_especie != null ? fmt(100*d.p_especie,0) + '%' : ''} · ${d.observacoes} obs.</small></div>
+        <div class="linha">${prob(cond, d.p_condicao)} ${extra}</div>
+        <div class="amb"><span>ar <b class="num">${d.temperatura == null ? '—' : fmt(d.temperatura,1) + ' °C'}</b></span>
+          <span>UR <b class="num">${d.umidade_ar == null ? '—' : fmt(d.umidade_ar,0) + '%'}</b></span>
+          <span>solo <b class="num">${d.umidade_solo == null ? '—' : fmt(d.umidade_solo,0) + '%'}</b></span>
+          <span class="mono">(${fmt(d.x,1)}, ${fmt(d.y,1)}) cm</span></div></div>`;
+    }).join('');
+}
+let ultimaCap = null;
+async function carregarUltima() {
+  let caps; try { caps = await api('/api/capturas?n=1'); } catch (e) { return; }
+  const c = caps[0]; if (!c) return;
+  const idade = (Date.now() - new Date(c.instante).getTime()) / 1000;
+  $('infIdade').textContent = 'há ' + dur(idade) + (c.enviado ? '' : ' · na fila');
+  if (c.imagem === ultimaCap && (c.resposta || !c.enviado)) return;
+  ultimaCap = c.imagem;
+  if (c.resposta) mostrarResultado(c.resposta, c.instante, c); else { infAtual = c; desenharInf(); }
+}
+async function carregarCapturas() {
+  let caps; try { caps = await api('/api/capturas?n=24'); } catch (e) { return; }
+  if (!caps.length) return;
+  $('gal').innerHTML = caps.map((c, i) => {
+    const base = `/midia/${c.pasta}/`, prof = c.imagem.replace('.jpg', '_prof.png');
+    const d = c.resposta && c.resposta.deteccoes && c.resposta.deteccoes[0];
+    return `<div class="cap" data-i="${i}"><div class="img">
+      <img loading="lazy" src="${esc(urlServidor(c.resposta && c.resposta.anotada) || base + c.imagem)}" alt="">
+      ${c.tem_profundidade ? `<img class="p" loading="lazy" src="${base}${esc(prof)}?cor=1" alt="">` : ''}
+      <span class="tag ${c.enviado ? 'ok' : 'warn'}">${c.enviado ? 'enviado' : 'na fila'}</span></div>
+      <div class="txt"><b>${quando(c.instante)}</b>${d ? esc((d.especie || 'planta ' + (d.planta ?? '?')) + (d.condicao ? ' · ' + d.condicao : '')) : '<span style="color:var(--mut)">sem inferência</span>'}</div></div>`;
+  }).join('');
+  $('gal').onclick = e => { const el = e.target.closest('.cap'); if (!el) return; const c = caps[+el.dataset.i];
+    $('dlgA').src = urlServidor(c.resposta && c.resposta.anotada) || `/midia/${c.pasta}/${c.imagem}`;
+    $('dlgB').src = c.tem_profundidade ? `/midia/${c.pasta}/${c.imagem.replace('.jpg', '_prof.png')}?cor=1` : '';
+    $('dlgB').hidden = !c.tem_profundidade;
+    const lt = Object.entries(c.leituras || {}).map(([k, v]) => `<span class="tag">${esc(k)}: ${fmt(v,1)}</span>`).join(' ');
+    const p = c.profundidade;
+    $('dlgTxt').innerHTML = `<b>${quando(c.instante)}</b> · <span class="mono">${esc(c.imagem)}</span><div style="margin:8px 0">${lt}</div>` +
+      (p ? `<div class="mono" style="color:var(--mut)">profundidade: ${fmt(100*p.cobertura,0)}% válida · mediana ${fmt(p.mediana_mm/1000,2)} m</div>` : '') +
+      (c.resposta ? `<pre class="mono" style="white-space:pre-wrap;max-height:200px;overflow:auto">${esc(JSON.stringify(c.resposta, null, 2))}</pre>` : '');
+    $('dlg').showModal(); };
+}
+
+/* ---------- ciclo ---------- */
+ligarStream(); atualizar().then(() => { carregarHist(); carregarUltima(); }); carregarCapturas();
+setInterval(carregarUltima, 3000);
+setInterval(atualizar, 2000);
+setInterval(carregarHist, 30000);
+setInterval(carregarCapturas, 15000);
+</script>
+</body>
+</html>

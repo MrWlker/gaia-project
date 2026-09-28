@@ -1,0 +1,4 @@
+# Deixa o grupo plugdev abrir a RealSense (D435 0b07, D435i 0b3a) - e o que o
+# QEMU precisa para passar a camera para a VM sem rodar como root.
+SUBSYSTEM=="usb", ATTRS{idVendor}=="8086", ATTRS{idProduct}=="0b07", MODE="0664", GROUP="plugdev"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="8086", ATTRS{idProduct}=="0b3a", MODE="0664", GROUP="plugdev"

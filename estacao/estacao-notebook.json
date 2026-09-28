@@ -1,0 +1,65 @@
+{
+  "no": "bancada-notebook",
+  "camera": "d435-notebook",
+  "servidor": [
+    "http://127.0.0.1:8077"
+  ],
+  "base": "notebook-dados",
+  "porta": 8080,
+  "intervalo_s": 10,
+  "amostragem_s": 10,
+  "historico_dias": 7,
+  "stream_fps": 10,
+  "stream_largura": 960,
+  "timeout_s": 60,
+  "manter_enviados": 3000,
+  "realsense": {
+    "largura": 1920,
+    "altura": 1080,
+    "fps": 15,
+    "prof_min_m": 0.15,
+    "prof_max_m": 2.0,
+    "prof_largura": 1280,
+    "prof_altura": 720
+  },
+  "sensores": [
+    {
+      "tipo": "cpu",
+      "nome": "CPU do notebook"
+    },
+    {
+      "tipo": "realsense"
+    },
+    {
+      "tipo": "simulado",
+      "canal": "temp",
+      "nome": "Temperatura do ar (simulada)",
+      "base": 25,
+      "amplitude": 5,
+      "min": 15,
+      "max": 32
+    },
+    {
+      "tipo": "simulado",
+      "canal": "umid_ar",
+      "nome": "Umidade do ar (simulada)",
+      "unidade": "%",
+      "base": 65,
+      "amplitude": -15,
+      "ruido": 1.0,
+      "min": 40,
+      "max": 90
+    },
+    {
+      "tipo": "simulado",
+      "canal": "soil1",
+      "nome": "Umidade do solo (simulada)",
+      "unidade": "%",
+      "base": 45,
+      "amplitude": 8,
+      "ruido": 0.5,
+      "min": 30,
+      "max": 70
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+# Estacao (Pi ou PC). No Pi a instalacao e offline: imagem/montar_offline.sh
+# baixa estes pacotes como wheels aarch64 no PC, e instalar_pi.sh os extrai.
+numpy
+pillow
+requests
+pyrealsense2
+adafruit-circuitpython-dht   ; platform_machine == "aarch64"
