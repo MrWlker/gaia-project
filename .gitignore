@@ -18,6 +18,7 @@ modelo/*
 *.jpeg
 *.png
 !documentos/figuras/*.png
+!documentos/figuras/*.jpg
 
 # gerados em execucao
 servidor/midia/

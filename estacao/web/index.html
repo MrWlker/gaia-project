@@ -67,6 +67,7 @@ main{max-width:1400px;margin:0 auto;padding:16px;display:grid;gap:16px;
 .palco{position:relative;background:#000;aspect-ratio:4/3;display:grid;grid-template-columns:1fr;overflow:hidden}
 .palco.duplo{grid-template-columns:1fr 1fr;aspect-ratio:8/3}
 .palco img{width:100%;height:100%;object-fit:contain;display:block}
+.palco img[hidden],.infimg img[hidden]{display:none}
 .mira{position:absolute;left:50%;top:50%;width:26px;height:26px;transform:translate(-50%,-50%);pointer-events:none}
 .palco.duplo .mira{display:none}
 .sobre{position:absolute;left:10px;bottom:10px;display:flex;gap:6px;flex-wrap:wrap}
